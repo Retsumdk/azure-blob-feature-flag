@@ -1,51 +1,40 @@
-#!/usr/bin/env bun
-/**
- * azure-blob-feature-flag - Azure Blob Storage feature flag management system with real-time updates and rollback capabilities
- * Built by Retsumdk
- */
-
-import { Command } from "commander";
-import { existsSync, readFileSync } from "fs";
-import { join } from "path";
-
-interface Config {
-  apiKey?: string;
-  baseUrl: string;
-  timeout: number;
-  retries: number;
-}
-
-const DEFAULTS: Config = {
-  baseUrl: "https://api.example.com",
-  timeout: 30000,
-  retries: 3,
-};
-
-function loadConfig(): Config {
-  const cfgPath = join(process.cwd(), "config.json");
-  if (existsSync(cfgPath)) {
-    try {
-      return { ...DEFAULTS, ...JSON.parse(readFileSync(cfgPath, "utf-8")) };
-    } catch { /* ignore */ }
-  }
-  return { ...DEFAULTS };
-}
-
-async function main(cfg: Config) {
-  console.log(`[${name}] Connected to ${cfg.baseUrl}`);
-  console.log(`[${name}] Timeout: ${cfg.timeout}ms | Retries: ${cfg.retries}`);
-  // TODO: implement your logic here
-  console.log(`[${name}] Done.`);
-}
-
-const program = new Command();
-program.name("azure-blob-feature-flag").description("Azure Blob Storage feature flag management system with real-time updates and rollback capabilities").version("1.0.0")
-  .option("-c, --config <path>", "Config file path", "config.json")
-  .option("-v, --verbose", "Verbose mode")
-  .action(async (opts) => {
-    const cfg = loadConfig();
-    if (opts.verbose) console.log("Verbose mode on");
-    try { await main(cfg); }
-    catch (e) { console.error(`Error: ${e}`); process.exit(1); }
-  });
-program.parse(process.argv);
+export { FeatureFlagClient } from "./client.js";
+export type { ClientOptions } from "./client.js";
+export { FlagStore } from "./flags/store.js";
+export { evaluateFlag, validateDefinition, isRuleSatisfied, isValidFlagKey } from "./flags/eval.js";
+export { FlagWatcher } from "./watch/watcher.js";
+export type { WatcherOptions } from "./watch/watcher.js";
+export { runDemo } from "./demo.js";
+export { runCli, USAGE } from "./cli-run.js";
+export {
+  FeatureFlagError,
+  isFeatureFlagError,
+  errorCodeNames,
+  describeError,
+  errorExitCode,
+} from "./errors.js";
+export {
+  MemoryBlobStore,
+  LocalBlobStore,
+  AzureBlobStore,
+  buildSharedKeyAuth,
+  parseListBlobsXml,
+  createBlobStore,
+  contentTypeForExtension,
+  sanitizeKey,
+} from "./blob/index.js";
+export type { AzureBlobConfig, ListedBlob, ListBlobsResult } from "./blob/azure.js";
+export { bucketFor, weightedSlot, fnv1a32Hex } from "./hash.js";
+export type {
+  BlobContents,
+  BlobMeta,
+  BlobStore,
+  EvalContext,
+  EvalResult,
+  FlagChange,
+  FlagDefinition,
+  FlagRecord,
+  FlagVariant,
+  PutOptions,
+  TargetingRule,
+} from "./types.js";
